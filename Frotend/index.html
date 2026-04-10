@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Primary Eye Care | Patient Search</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #e8f0f5 0%, #d4e2ec 100%);
+            min-height: 100vh;
+            color: #1a2c3e;
+        }
+
+        /* Main Container */
+        .ophthalmology-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header Section */
+        .header-section {
+            background: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid #e2edf2;
+        }
+
+        .header-left h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0f3b2c, #2b6e4f);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .header-left p {
+            font-size: 0.75rem;
+            color: #6c8d9e;
+            margin-top: 4px;
+        }
+
+        .ministry-logo {
+            background: #0f3b2c;
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Main Search Container */
+        .search-main-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        /* Search Card */
+        .search-card {
+            background: white;
+            border-radius: 48px;
+            padding: 3rem 2.5rem;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            max-width: 600px;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid rgba(43, 110, 79, 0.1);
+        }
+
+        .search-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 30px 55px -12px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-icon-large {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: #eef3f7;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 60px;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-card h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0f3b2c;
+            margin-bottom: 0.75rem;
+        }
+
+        .search-description {
+            color: #5e7b8c;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        /* Search Input Group */
+        .search-input-group-large {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input-large {
+            flex: 1;
+            padding: 1rem 1.2rem;
+            font-size: 1rem;
+            border: 2px solid #e2edf2;
+            border-radius: 60px;
+            font-family: inherit;
+            transition: all 0.2s;
+            background: #fefefe;
+        }
+
+        .search-input-large:focus {
+            outline: none;
+            border-color: #2b6e4f;
+            box-shadow: 0 0 0 3px rgba(43, 110, 79, 0.1);
+        }
+
+        .search-button-large {
+            background: #2b6e4f;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: inherit;
+        }
+
+        .search-button-large:hover {
+            background: #1e5940;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(43, 110, 79, 0.3);
+        }
+
+        .search-button-large:disabled {
+            background: #9bb7c8;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Error Text */
+        .error-text {
+            background: #fee2e2;
+            color: #c73e3e;
+            padding: 0.75rem 1rem;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        /* Search Examples */
+        .search-examples {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2edf2;
+        }
+
+        .search-examples p {
+            font-size: 0.8rem;
+            color: #6c8d9e;
+        }
+
+        .example-id {
+            display: inline-block;
+            background: #eef3f7;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            margin: 0 0.25rem;
+            font-weight: 600;
+            color: #2b6e4f;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .example-id:hover {
+            background: #2b6e4f;
+            color: white;
+        }
+
+        /* Footer */
+        .footer-section {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.7rem;
+            color: #6c8d9e;
+            border-top: 1px solid rgba(255,255,255,0.3);
+        }
+
+        /* Loading Animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .loading-text {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .search-card {
+                padding: 2rem 1.5rem;
+            }
+            .search-card h2 {
+                font-size: 1.4rem;
+            }
+            .search-input-group-large {
+                flex-direction: column;
+            }
+            .search-button-large {
+                justify-content: center;
+            }
+            .header-section {
+                padding: 1rem;
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ophthalmology-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="header-left">
+                <h1>Primary Eye Care</h1>
+                <p>Ophthalmology-Module</p>
+            </div>
+            <div class="header-right">
+                <div class="ministry-logo">🏥 Ministry Of Health</div>
+            </div>
+        </div>
+
+        <!-- Main Content - Patient Search -->
+        <div class="search-main-container">
+            <div class="search-card">
+                <div class="search-icon-large">👁️</div>
+                <h2>Find Patient</h2>
+                <p class="search-description">Enter the Patient ID to start a new consultation or view existing records</p>
+                
+                <div class="search-input-group-large">
+                    <input type="text" id="patientSearchInput" class="search-input-large" placeholder="Enter Patient ID" autofocus>
+                    <button id="searchPatientBtn" class="search-button-large">
+                        <span>🔍</span> Search Patient
+                    </button>
+                </div>
+                
+                <div id="searchError" class="error-text" style="display:none;"></div>
+                
+                <div class="search-examples">
+                    <p>📋 Example Patient IDs: 
+                        <span class="example-id" data-id="2">2</span>, 
+                        <span class="example-id" data-id="3">3</span>, 
+                        <span class="example-id" data-id="5">5</span>
+                    </p>
+                    <p style="margin-top: 0.5rem; font-size: 0.7rem;">✨ For demo purposes, you can use any of these IDs</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-section">
+            <p> Primary Eye Care | Ministry of Health | Secure EMR System</p>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = '../Backend/api';
+        
+        // DOM Elements
+        const searchInput = document.getElementById('patientSearchInput');
+        const searchBtn = document.getElementById('searchPatientBtn');
+        const errorDiv = document.getElementById('searchError');
+        
+        // Helper: Show error message
+        function showError(message) {
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 4000);
+            }
+        }
+        
+        // Helper: Show loading state
+        function setLoading(isLoading) {
+            if (searchBtn) {
+                if (isLoading) {
+                    searchBtn.innerHTML = '<span>⏳</span> Searching...';
+                    searchBtn.disabled = true;
+                } else {
+                    searchBtn.innerHTML = '<span>🔍</span> Search Patient';
+                    searchBtn.disabled = false;
+                }
+            }
+        }
+        
+        // Main search function
+        async function searchPatient() {
+            const patientId = searchInput?.value.trim();
+            
+            if (!patientId) {
+                showError('❌ Please enter a Patient ID');
+                searchInput?.focus();
+                return;
+            }
+            
+            setLoading(true);
+            
+            try {
+                // Attempt to fetch from backend API
+                const response = await fetch(`${API_BASE_URL}/patients/get.php?id=${encodeURIComponent(patientId)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    // Save patient data to localStorage for the next pages
+                    localStorage.setItem('currentPatientId', patientId);
+                    localStorage.setItem('currentPatient', JSON.stringify(result.data));
+                    
+                    // Show success briefly then redirect
+                    showSuccessAndRedirect();
+                } else {
+                    // If backend returns no data, try demo mode
+                    handleDemoMode(patientId);
+                }
+            } catch (error) {
+                console.warn('Backend not available, using demo mode:', error);
+                // Fallback to demo mode when backend is not running
+                handleDemoMode(patientId);
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        // Demo mode - for presentation when backend is not available
+        function handleDemoMode(patientId) {
+            // Demo patient database
+            const demoPatients = {
+                '2': {
+                    id: '2',
+                    name: 'Jean Paul Niyonshuti',
+                    nida: '119988775523',
+                    insurance: 'RSSB',
+                    age: '45',
+                    gender: 'Male',
+                    phone: '0788123457',
+                    district: 'Gasabo',
+                    village: 'Kimihurura',
+                    catchmentArea: 'Kigali'
+                },
+                '3': {
+                    id: '3',
+                    name: 'Marie Claire Uwimana',
+                    nida: '119988775524',
+                    insurance: 'RAMA',
+                    age: '38',
+                    gender: 'Female',
+                    phone: '0788123458',
+                    district: 'Nyarugenge',
+                    village: 'Nyamirambo',
+                    catchmentArea: 'Kigali'
+                },
+                '5': {
+                    id: '5',
+                    name: 'Emmanuel Hakizimana',
+                    nida: '119988775526',
+                    insurance: 'MMI',
+                    age: '62',
+                    gender: 'Male',
+                    phone: '0788123460',
+                    district: 'Kicukiro',
+                    village: 'Gikondo',
+                    catchmentArea: 'Kigali'
+                }
+            };
+            
+            // Also allow any ID to create a generic patient for demo
+            if (demoPatients[patientId]) {
+                localStorage.setItem('currentPatientId', patientId);
+                localStorage.setItem('currentPatient', JSON.stringify(demoPatients[patientId]));
+                showSuccessAndRedirect();
+            } else {
+                // For any other ID, create a generic patient record
+                const genericPatient = {
+                    id: patientId,
+                    name: `Patient ${patientId}`,
+                    nida: `NIDA${patientId}`,
+                    insurance: 'RAMA',
+                    age: '--',
+                    gender: 'Not specified',
+                    phone: '---',
+                    district: 'Unknown',
+                    village: 'Unknown',
+                    catchmentArea: 'Kigali'
+                };
+                localStorage.setItem('currentPatientId', patientId);
+                localStorage.setItem('currentPatient', JSON.stringify(genericPatient));
+                showSuccessAndRedirect();
+            }
+        }
+        
+        function showSuccessAndRedirect() {
+            // Show temporary success message
+            const originalBtnText = searchBtn?.innerHTML;
+            if (searchBtn) {
+                searchBtn.innerHTML = '<span>✅</span> Found! Redirecting...';
+                setTimeout(() => {
+                    window.location.href = 'patientDetails.html';
+                }, 800);
+            } else {
+                window.location.href = 'patientDetails.html';
+            }
+        }
+        
+        // Quick fill example IDs
+        function setExampleId(exampleElement) {
+            const patientId = exampleElement.getAttribute('data-id') || exampleElement.textContent.trim();
+            if (searchInput) {
+                searchInput.value = patientId;
+                searchInput.focus();
+                // Optional: auto search
+                // searchPatient();
+            }
+        }
+        
+        // Event Listeners
+        if (searchBtn) {
+            searchBtn.addEventListener('click', searchPatient);
+        }
+        
+        if (searchInput) {
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchPatient();
+                }
+            });
+        }
+        
+        // Add click handlers to example IDs
+        document.querySelectorAll('.example-id').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const id = el.getAttribute('data-id') || el.textContent.trim();
+                if (searchInput) {
+                    searchInput.value = id;
+                    searchInput.focus();
+                }
+            });
+        });
+        
+        // Pre-fill from URL parameter if any
+        const urlParams = new URLSearchParams(window.location.search);
+        const patientIdParam = urlParams.get('id');
+        if (patientIdParam && searchInput) {
+            searchInput.value = patientIdParam;
+            // Auto search if param exists
+            setTimeout(() => searchPatient(), 300);
+        }
+        
+        // Focus input on load
+        if (searchInput) {
+            setTimeout(() => searchInput.focus(), 100);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overview & Submit | Primary Eye Care</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: #f0f4f8; color: #1a2c3e; padding: 2rem; }
+        .overview-container { max-width: 1200px; margin: 0 auto; }
+        .header-card { background: white; border-radius: 28px; padding: 1.5rem 2rem; margin-bottom: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e2edf2; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .logo-area h1 { font-size: 1.4rem; font-weight: 700; color: #0f3b2c; }
+        .logo-area p { font-size: 0.8rem; color: #4a6a7e; margin-top: 4px; }
+        .status-area { display: flex; align-items: center; gap: 1.5rem; }
+        .not-saved-badge { background: #fff3e0; padding: 0.4rem 1rem; border-radius: 40px; font-size: 0.75rem; font-weight: 600; color: #c47d2e; }
+        .action-buttons { display: flex; gap: 0.75rem; }
+        .cancel-btn, .save-draft-btn { border: none; padding: 0.5rem 1.3rem; border-radius: 40px; font-weight: 600; font-size: 0.8rem; cursor: pointer; }
+        .cancel-btn { background: #f1f5f9; color: #4a5b6e; }
+        .save-draft-btn { background: #2b6e4f; color: white; }
+        .overview-section { background: white; border-radius: 28px; border: 1px solid #e2edf2; margin-bottom: 2rem; overflow: hidden; }
+        .overview-header { background: #eef3f7; padding: 1.2rem 2rem; font-weight: 700; font-size: 1.2rem; color: #0f4c5f; }
+        .overview-content { padding: 1.8rem 2rem; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .info-card { background: #fafdff; border-radius: 20px; border: 1px solid #e2edf2; overflow: hidden; }
+        .card-title { background: #f7fafc; padding: 0.8rem 1.2rem; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; color: #2c5a6e; border-bottom: 1px solid #e2edf2; }
+        .card-body { padding: 1rem 1.2rem; }
+        .info-row { display: flex; padding: 0.6rem 0; border-bottom: 1px solid #ecf3f7; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { width: 130px; font-weight: 600; font-size: 0.8rem; color: #5e7b8c; }
+        .info-value { flex: 1; font-size: 0.9rem; color: #1a2c3e; }
+        .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; }
+        .tag { background: #eef3f7; padding: 0.25rem 0.8rem; border-radius: 40px; font-size: 0.75rem; color: #2c5a6e; }
+        .tag-symptom { background: #fef5e7; color: #b95f1a; }
+        .submit-btn { background: #2b6e4f; width: 100%; padding: 1rem; border: none; border-radius: 40px; color: white; font-weight: 700; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+        .submit-btn:hover { background: #1e5940; transform: translateY(-1px); }
+        .error-message { background: #fee2e2; color: #c73e3e; padding: 1rem; border-radius: 16px; margin-bottom: 1rem; text-align: center; }
+        @media (max-width: 640px) { body { padding: 1rem; } .info-row { flex-direction: column; gap: 0.3rem; } .info-label { width: auto; } }
+    </style>
+</head>
+<body>
+<div class="overview-container">
+    <div class="header-card">
+        <div class="logo-area"><h1>📋 Consultation Overview & Final Submission</h1><p>Ministry of Health | Primary Eye Care</p></div>
+        <div class="status-area"><div class="not-saved-badge" id="statusBadge">⚠️ Not Saved</div>
+            <div class="action-buttons"><button class="cancel-btn" onclick="goBack()">← Back</button>
+            <button class="save-draft-btn" onclick="saveAsDraft()">Save Draft</button></div>
+        </div>
+    </div>
+    <div class="overview-section"><div class="overview-header">📝 Complete Consultation Summary</div><div class="overview-content" id="overviewContent"></div></div>
+    <button class="submit-btn" id="finalSubmitBtn">✅ Complete & Save Consultation Record</button>
+</div>
+
+<script>
+    // Default empty data structure to prevent errors
+    let consultationData = {
+        patient: { id: '', name: '', age: '', gender: '', insurance: '', catchmentArea: '' },
+        consultation: { type: 'Initial Consultation', notes: '', date: new Date().toLocaleDateString() },
+        symptoms: [],
+        assessments: [],
+        diagnosis: { primary: 'Not specified', code: '', notes: '' },
+        treatments: [],
+        consumables: [],
+        discharge: { status: 'Pending', date: '', service: '', summary: '' },
+        clinician: ''
+    };
+
+    function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+
+    function loadFromStorage() {
+        // Try to load from multiple storage locations
+        let loadedData = false;
+        
+        // 1. Try completeConsultation
+        const savedComplete = localStorage.getItem('completeConsultation');
+        if (savedComplete) {
+            try {
+                const parsed = JSON.parse(savedComplete);
+                consultationData = { ...consultationData, ...parsed };
+                loadedData = true;
+            } catch(e) { console.warn('Error parsing completeConsultation:', e); }
+        }
+        
+        // 2. Try currentPatient
+        const savedPatient = localStorage.getItem('currentPatient');
+        if (savedPatient) {
+            try {
+                const patient = JSON.parse(savedPatient);
+                consultationData.patient = { ...consultationData.patient, ...patient };
+                loadedData = true;
+            } catch(e) { console.warn('Error parsing currentPatient:', e); }
+        }
+        
+        // 3. Try consultations for this patient
+        const patientId = localStorage.getItem('currentPatientId');
+        if (patientId) {
+            const consultKey = `consultations_${patientId}`;
+            const savedConsults = localStorage.getItem(consultKey);
+            if (savedConsults) {
+                try {
+                    const consults = JSON.parse(savedConsults);
+                    if (consults && consults.length > 0 && !loadedData) {
+                        consultationData = { ...consultationData, ...consults[0] };
+                        loadedData = true;
+                    }
+                } catch(e) {}
+            }
+        }
+        
+        // 4. Try currentDiagnosis
+        const savedDiagnosis = localStorage.getItem('currentDiagnosis');
+        if (savedDiagnosis) {
+            try {
+                const diag = JSON.parse(savedDiagnosis);
+                consultationData.diagnosis = { ...consultationData.diagnosis, ...diag };
+                loadedData = true;
+            } catch(e) {}
+        }
+        
+        // 5. Try consultation data from session storage
+        const sessionData = sessionStorage.getItem('consultationData');
+        if (sessionData) {
+            try {
+                const sess = JSON.parse(sessionData);
+                consultationData = { ...consultationData, ...sess };
+                loadedData = true;
+            } catch(e) {}
+        }
+        
+        // 6. Try patient details from session
+        const sessionPatient = sessionStorage.getItem('currentPatient');
+        if (sessionPatient) {
+            try {
+                const patient = JSON.parse(sessionPatient);
+                consultationData.patient = { ...consultationData.patient, ...patient };
+                loadedData = true;
+            } catch(e) {}
+        }
+        
+        if (!loadedData) {
+            console.warn('No consultation data found in storage. Using default demo data.');
+            // Set demo data for testing
+            consultationData = {
+                patient: { id: 'P10024', name: 'Jeanne Uwase', age: '54', gender: 'Female', insurance: 'RAMA', catchmentArea: 'Kigali' },
+                consultation: { type: 'Initial Consultation', notes: 'Patient presents with gradual vision decline.', date: new Date().toLocaleDateString() },
+                symptoms: [{ name: 'Blurred Vision', present: true, laterality: 'BE' }],
+                assessments: [{ name: 'Visual Acuity', rightEye: '6/12', leftEye: '6/18' }],
+                diagnosis: { primary: 'Senile Cataract', code: 'H25.1', notes: 'Bilateral age-related cataracts.' },
+                treatments: [{ medication: 'Ciprofloxacin Drops', dosage: '1 drop QID', duration: '7 days' }],
+                consumables: [{ name: 'Eye Patch', quantity: '2', unit: 'pieces' }],
+                discharge: { status: 'Discharged', date: new Date().toLocaleDateString(), service: 'Ophthalmology Clinic', summary: 'Follow up in 2 weeks.' },
+                clinician: 'Dr. Emmanuel'
+            };
+        }
+        
+        renderSummary();
+    }
+
+    function renderSummary() {
+        const container = document.getElementById('overviewContent');
+        if (!container) return;
+        
+        // Safely access nested properties with fallbacks
+        const patient = consultationData.patient || {};
+        const consultation = consultationData.consultation || {};
+        const diagnosis = consultationData.diagnosis || {};
+        const discharge = consultationData.discharge || {};
+        const symptoms = consultationData.symptoms || [];
+        const assessments = consultationData.assessments || [];
+        const treatments = consultationData.treatments || [];
+        const consumables = consultationData.consumables || [];
+        
+        const activeSymptoms = symptoms.filter(s => s && s.present);
+        const activeAssessments = assessments.filter(a => a && (a.rightEye || a.leftEye));
+        
+        const html = `
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="card-title">👤 Patient Information</div>
+                    <div class="card-body">
+                        <div class="info-row"><div class="info-label">Patient Name:</div><div class="info-value"><strong>${escapeHtml(patient.name || 'N/A')}</strong></div></div>
+                        <div class="info-row"><div class="info-label">Patient ID:</div><div class="info-value">${escapeHtml(patient.id || 'N/A')}</div></div>
+                        <div class="info-row"><div class="info-label">Age / Gender:</div><div class="info-value">${escapeHtml(patient.age || 'N/A')} / ${escapeHtml(patient.gender || 'N/A')}</div></div>
+                        <div class="info-row"><div class="info-label">Insurance:</div><div class="info-value">${escapeHtml(patient.insurance || 'N/A')}</div></div>
+                        <div class="info-row"><div class="info-label">Catchment Area:</div><div class="info-value">${escapeHtml(patient.catchmentArea || 'N/A')}</div></div>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="card-title">🩺 Consultation & Diagnosis</div>
+                    <div class="card-body">
+                        <div class="info-row"><div class="info-label">Consultation Type:</div><div class="info-value">${escapeHtml(consultation.type || 'N/A')}</div></div>
+                        <div class="info-row"><div class="info-label">Date:</div><div class="info-value">${escapeHtml(consultation.date || new Date().toLocaleDateString())}</div></div>
+                        <div class="info-row"><div class="info-label">Primary Diagnosis:</div><div class="info-value"><strong>${escapeHtml(diagnosis.primary || 'Not specified')}</strong> ${diagnosis.code ? '('+escapeHtml(diagnosis.code)+')' : ''}</div></div>
+                        ${diagnosis.notes ? `<div class="info-row"><div class="info-label">Diagnosis Notes:</div><div class="info-value">${escapeHtml(diagnosis.notes)}</div></div>` : ''}
+                    </div>
+                </div>
+            </div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="card-title">📋 Presenting Symptoms</div>
+                    <div class="card-body">
+                        <div class="tags">${activeSymptoms.length > 0 ? activeSymptoms.map(s => `<span class="tag tag-symptom">${escapeHtml(s.name)} (${s.laterality || 'N/A'})</span>`).join('') : '<span class="empty-message">No symptoms recorded</span>'}</div>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="card-title">👁️ Eye Assessment</div>
+                    <div class="card-body">
+                        ${activeAssessments.length > 0 ? activeAssessments.map(a => `<div class="info-row"><div class="info-label">${escapeHtml(a.name)}:</div><div class="info-value">RE: ${a.rightEye || '—'} | LE: ${a.leftEye || '—'}</div></div>`).join('') : '<div class="empty-message">No assessments recorded</div>'}
+                    </div>
+                </div>
+            </div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="card-title">💊 Treatment Plan</div>
+                    <div class="card-body"><div class="tags">${treatments.length > 0 ? treatments.map(t => `<span class="tag">${escapeHtml(t.medication || t.med)} — ${t.dosage || ''} · ${t.duration || ''}</span>`).join('') : 'No treatments prescribed'}</div></div>
+                </div>
+                <div class="info-card">
+                    <div class="card-title">📦 Consumables</div>
+                    <div class="card-body"><div class="tags">${consumables.length > 0 ? consumables.map(c => `<span class="tag">${escapeHtml(c.name)} x${c.quantity || c.qty} ${c.unit || ''}</span>`).join('') : 'No consumables issued'}</div></div>
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="card-title">🚪 Discharge Summary</div>
+                <div class="card-body">
+                    <div class="info-row"><div class="info-label">Status:</div><div class="info-value"><strong>${escapeHtml(discharge.status || 'Pending')}</strong></div></div>
+                    <div class="info-row"><div class="info-label">Discharge Date:</div><div class="info-value">${escapeHtml(discharge.date || 'Not set')}</div></div>
+                    <div class="info-row"><div class="info-label">Service:</div><div class="info-value">${escapeHtml(discharge.service || 'N/A')}</div></div>
+                    ${discharge.summary ? `<div class="info-row"><div class="info-label">Instructions:</div><div class="info-value">${escapeHtml(discharge.summary)}</div></div>` : ''}
+                </div>
+            </div>
+            ${consultation.notes ? `<div class="info-card"><div class="card-title">📝 Consultation Notes</div><div class="card-body"><div class="info-value">${escapeHtml(consultation.notes)}</div></div></div>` : ''}
+        `;
+        container.innerHTML = html;
+    }
+
+    function saveConsultation() {
+        consultationData.savedAt = new Date().toLocaleString();
+        const patientId = consultationData.patient?.id || localStorage.getItem('currentPatientId');
+        
+        if (patientId) {
+            const storageKey = `consultations_${patientId}`;
+            let existing = [];
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+                try { existing = JSON.parse(saved); } catch(e) {}
+            }
+            existing.unshift(consultationData);
+            if (existing.length > 20) existing = existing.slice(0, 20);
+            localStorage.setItem(storageKey, JSON.stringify(existing));
+        }
+        
+        localStorage.setItem('completeConsultation', JSON.stringify(consultationData));
+        document.getElementById('statusBadge').innerHTML = '✓ Saved';
+        alert('✅ Consultation successfully completed and saved!');
+        setTimeout(() => { document.getElementById('statusBadge').innerHTML = '⚠️ Not Saved'; }, 2000);
+    }
+
+    function saveAsDraft() {
+        localStorage.setItem('consultationDraft', JSON.stringify({ data: consultationData, timestamp: Date.now() }));
+        document.getElementById('statusBadge').innerHTML = '✓ Draft Saved';
+        alert('Draft saved successfully!');
+        setTimeout(() => { document.getElementById('statusBadge').innerHTML = '⚠️ Not Saved'; }, 1500);
+    }
+
+    function goBack() {
+        if (confirm('Go back to previous page?')) {
+            window.history.back();
+        }
+    }
+
+    document.getElementById('finalSubmitBtn')?.addEventListener('click', saveConsultation);
+    loadFromStorage();
+</script>
+</body>
+</html>

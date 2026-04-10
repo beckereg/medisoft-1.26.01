@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultation | Primary Eye Care</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: #f0f4f8; color: #1a2c3e; }
+        .app-container { max-width: 1400px; margin: 0 auto; background: white; min-height: 100vh; display: flex; flex-direction: column; }
+        .top-bar { background: white; border-bottom: 1px solid #e2e8f0; padding: 0.75rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .logo-area h2 { font-size: 1.2rem; font-weight: 600; color: #0f3b2c; }
+        .logo-area p { font-size: 0.75rem; color: #4a6a7e; }
+        .status-area { display: flex; align-items: center; gap: 1.5rem; }
+        .not-saved-badge { background: #fff3e0; padding: 0.4rem 1rem; border-radius: 40px; font-size: 0.75rem; font-weight: 600; color: #c47d2e; }
+        .action-buttons { display: flex; gap: 0.75rem; }
+        .cancel-btn, .save-btn, .refresh-btn { border: none; padding: 0.45rem 1.2rem; border-radius: 40px; font-weight: 600; font-size: 0.8rem; cursor: pointer; }
+        .cancel-btn { background: #f1f5f9; color: #4a5b6e; }
+        .save-btn { background: #2b6e4f; color: white; }
+        .refresh-btn { background: #e2e8f0; color: #2c5a6e; }
+        .nav-tabs { display: flex; flex-wrap: wrap; background: white; border-bottom: 1px solid #e2edf2; padding: 0 1.5rem; gap: 0.25rem; }
+        .tab-btn { background: transparent; border: none; padding: 1rem 1.2rem; font-size: 0.9rem; font-weight: 500; color: #5b7c8e; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: #2b6e4f; border-bottom-color: #2b6e4f; font-weight: 600; }
+        .tab-content { padding: 1.8rem 2rem; flex: 1; }
+        .subsection { background: white; border-radius: 20px; margin-bottom: 2rem; border: 1px solid #e2edf2; }
+        .subsection h3 { font-size: 1.3rem; font-weight: 600; padding: 1.2rem 1.5rem 0.6rem 1.5rem; color: #0f4c5f; }
+        .instruction { font-size: 0.85rem; color: #5e7b8c; margin: 0.5rem 1.5rem 1.2rem 1.5rem; background: #f0f6fa; padding: 0.5rem 1rem; border-radius: 14px; }
+        .form-field { padding: 0.8rem 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .form-field label { font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: #2c5a6e; }
+        .required { color: #c73e3e; }
+        .invalid-input { border-color: #c73e3e !important; background: #fff4f4; }
+        select, textarea, input { border: 1.5px solid #dce7ef; border-radius: 16px; padding: 0.7rem 1rem; font-family: inherit; font-size: 0.9rem; width: 100%; }
+        .symptoms-table, .assessment-table { margin: 0 1.5rem 1.5rem 1.5rem; border: 1px solid #e2edf2; border-radius: 20px; overflow: hidden; }
+        .table-header { display: grid; grid-template-columns: 2fr 1.2fr 2.2fr; background: #eef3f7; font-weight: 700; padding: 0.9rem 1rem; }
+        .table-row { display: grid; grid-template-columns: 2fr 1.2fr 2.2fr; padding: 0.8rem 1rem; border-bottom: 1px solid #ecf3f7; align-items: center; }
+        .laterality-group { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .radio-label { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
+        
+        /* Previous Consultation History Styles */
+        .history-section { background: #f8fafc; border-radius: 20px; margin-bottom: 2rem; border: 1px solid #e2edf2; overflow: hidden; }
+        .history-header { background: #eef3f7; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .history-header h3 { font-size: 1.1rem; font-weight: 600; color: #0f4c5f; display: flex; align-items: center; gap: 0.5rem; }
+        .toggle-history { background: #2b6e4f; color: white; border: none; padding: 0.3rem 1rem; border-radius: 40px; font-size: 0.7rem; cursor: pointer; }
+        .history-list { max-height: 400px; overflow-y: auto; }
+        .history-card { background: white; margin: 1rem 1.5rem; border-radius: 16px; border: 1px solid #e2edf2; padding: 1rem; transition: 0.2s; }
+        .history-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .history-date { font-size: 0.7rem; color: #2b6e4f; font-weight: 600; margin-bottom: 0.5rem; }
+        .history-diagnosis { font-weight: 600; margin-bottom: 0.3rem; }
+        .history-symptoms { font-size: 0.8rem; color: #5e7b8c; margin-bottom: 0.3rem; }
+        .history-notes { font-size: 0.75rem; color: #6c8d9e; }
+        .no-history { padding: 2rem; text-align: center; color: #9bb7c8; }
+        .load-history-btn { background: #eef3f7; border: none; padding: 0.5rem 1rem; border-radius: 40px; cursor: pointer; margin: 0.5rem 1.5rem 1rem auto; display: block; font-size: 0.75rem; }
+        
+        @media (max-width: 700px) { .table-header, .table-row { grid-template-columns: 1fr; gap: 8px; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="top-bar">
+        <div class="logo-area"><h2>New Primary Eye Care</h2><p>Ministry Of Health</p></div>
+        <div class="status-area"><div class="not-saved-badge" id="statusBadge">⚠️ Not Saved</div><div class="action-buttons"><button class="refresh-btn" onclick="endSessionAndRefresh()">🔄 End Session</button><button class="cancel-btn" onclick="if(confirm('Discard changes?')) location.reload();">Cancel</button><button class="save-btn" onclick="saveConsultation()">Save</button></div></div>
+    </div>
+    <div class="nav-tabs">
+        <button class="tab-btn" onclick="location.href='patientDetails.html'">Patient Details</button>
+        <button class="tab-btn active" onclick="location.href='consultation.html'">Consultation</button>
+        <button class="tab-btn" onclick="location.href='final-diagnosis.html'">Final Diagnosis</button>
+        <button class="tab-btn" onclick="location.href='treatment.html'">Treatment</button>
+        <button class="tab-btn" onclick="location.href='consumables.html'">Consumables</button>
+        <button class="tab-btn" onclick="location.href='discharge.html'">Discharge</button>
+    </div>
+    <div class="tab-content">
+        <!-- Previous Consultation History Section -->
+        <div class="history-section" id="historySection" style="display: none;">
+            <div class="history-header">
+                <h3>📜 Previous Consultation Records</h3>
+                <button class="toggle-history" onclick="toggleHistory()">Hide History</button>
+            </div>
+            <div id="historyList" class="history-list">
+                <div class="no-history">Loading previous records...</div>
+            </div>
+        </div>
+
+        <!-- New Consultation Form -->
+        <div class="subsection"><h3>Consultation Information</h3>
+            <div class="form-field"><label>Consultation type <span class="required">*</span></label><select id="consultType"><option value="">Select...</option><option>Follow-up</option><option>Emergency</option><option>Post-operative</option><option>Referral</option></select></div>
+            <div class="form-field"><label>Consultation notes</label><textarea id="consultNotes" rows="3" placeholder="Enter clinical notes..."></textarea></div>
+        </div>
+        <div class="subsection"><h3>Present Complaint</h3><p class="instruction">Select symptoms and laterality</p><div id="symptomsContainer"></div></div>
+        <div class="subsection"><h3>Eye Assessment</h3><div id="assessmentContainer"></div></div>
+    </div>
+</div>
+
+<script>
+    // Global state
+    let symptomsState = [];
+    let assessmentsState = [];
+    let currentPatientId = null;
+    let previousConsultations = [];
+    
+    const symptomsList = ['Redness','Pain','Blurred Vision','Itching','Discharge','Foreign Body Sensation','Watering','Photophobia','Swelling','Headache'];
+    const assessmentItems = [
+        { name: 'Visual Acuity', values: ['6/6','6/9','6/12','6/18','6/24','6/36','6/60','CF','HM','PL','NPL'] },
+        { name: 'Intraocular Pressure', values: ['Normal','Elevated','Low'] },
+        { name: 'Cornea', values: ['Clear','Opacity','Edema','Ulcer','Scar'] },
+        { name: 'Lens', values: ['Clear','Nuclear Sclerosis','Cortical Cataract','Mature Cataract'] },
+        { name: 'Conjunctiva', values: ['Normal','Injected','Pale','Chemosis','Follicles'] }
+    ];
+
+    function markUnsaved() { document.getElementById('statusBadge').innerHTML = '⚠️ Not Saved'; }
+    
+    // End session and go back to search
+    function endSessionAndRefresh() {
+        if (confirm('End current session? All unsaved data will be lost and you will return to the search page.')) {
+            localStorage.removeItem('currentPatientId');
+            localStorage.removeItem('currentPatient');
+            sessionStorage.removeItem('currentPatient');
+            window.location.href = 'index.html';
+        }
+    }
+
+    // Get current patient ID from storage
+    function getCurrentPatientId() {
+        const savedPatientId = localStorage.getItem('currentPatientId');
+        const savedPatient = localStorage.getItem('currentPatient');
+        if (savedPatientId) return savedPatientId;
+        if (savedPatient) {
+            try {
+                const patient = JSON.parse(savedPatient);
+                return patient.id;
+            } catch(e) {}
+        }
+        return null;
+    }
+
+    // Load previous consultations from database
+    async function loadPreviousConsultations() {
+        currentPatientId = getCurrentPatientId();
+        if (!currentPatientId) {
+            document.getElementById('historySection').style.display = 'none';
+            return;
+        }
+
+        try {
+            // Fetch consultations from database
+            const response = await fetch(`${API_BASE_URL}/consultations/get.php?patient_id=${currentPatientId}`);
+            const result = await response.json();
+            
+            if (result.success && result.data && result.data.length > 0) {
+                // Format the data for display
+                previousConsultations = result.data.map(consult => ({
+                    ...consult,
+                    savedAt: consult.created_at,
+                    patient: currentPatient // Add patient info if available
+                }));
+                
+                displayHistory();
+                document.getElementById('historySection').style.display = 'block';
+            } else {
+                // Fallback to localStorage if no database records
+                loadFromLocalStorage();
+            }
+        } catch(e) {
+            console.error('Error loading consultations:', e);
+            // Fallback to localStorage
+            loadFromLocalStorage();
+        }
+    }
+
+    // Fallback function to load from localStorage
+    function loadFromLocalStorage() {
+        const allConsultationsKey = `consultations_${currentPatientId}`;
+        const savedConsultations = localStorage.getItem(allConsultationsKey);
+        
+        if (savedConsultations) {
+            try {
+                previousConsultations = JSON.parse(savedConsultations);
+                if (previousConsultations.length > 0) {
+                    displayHistory();
+                    document.getElementById('historySection').style.display = 'block';
+                } else {
+                    document.getElementById('historySection').style.display = 'none';
+                }
+            } catch(e) {
+                previousConsultations = [];
+                document.getElementById('historySection').style.display = 'none';
+            }
+        } else {
+            // Also check for old format (completeConsultation)
+            const oldConsultation = localStorage.getItem('completeConsultation');
+            if (oldConsultation) {
+                try {
+                    const old = JSON.parse(oldConsultation);
+                    if (old && old.consultation) {
+                        previousConsultations = [old];
+                        displayHistory();
+                        document.getElementById('historySection').style.display = 'block';
+                    }
+                } catch(e) {}
+            } else {
+                document.getElementById('historySection').style.display = 'none';
+            }
+        }
+    }
+
+    // Display history cards
+    function displayHistory() {
+        const historyContainer = document.getElementById('historyList');
+        if (!historyContainer) return;
+        
+        if (previousConsultations.length === 0) {
+            historyContainer.innerHTML = '<div class="no-history">No previous consultation records found.</div>';
+            return;
+        }
+        
+        // Sort by date (newest first)
+        const sorted = [...previousConsultations].sort((a, b) => {
+            const dateA = new Date(a.savedAt || a.consultation?.date || 0);
+            const dateB = new Date(b.savedAt || b.consultation?.date || 0);
+            return dateB - dateA;
+        });
+        
+        let html = '';
+        sorted.forEach((consult, index) => {
+            const date = consult.savedAt || consult.consultation?.date || 'Date not recorded';
+            const diagnosis = consult.diagnosis?.primary || 'No diagnosis recorded';
+            const symptoms = consult.symptoms?.filter(s => s.present).map(s => s.name).join(', ') || 'No symptoms recorded';
+            const notes = consult.consultation?.notes || '';
+            const type = consult.consultation?.type || 'Consultation';
+            
+            html += `
+                <div class="history-card">
+                    <div class="history-date">📅 ${date} | ${type}</div>
+                    <div class="history-diagnosis">🏥 Diagnosis: ${escapeHtml(diagnosis)}</div>
+                    <div class="history-symptoms">📋 Symptoms: ${escapeHtml(symptoms)}</div>
+                    ${notes ? `<div class="history-notes">📝 Notes: ${escapeHtml(notes.substring(0, 100))}${notes.length > 100 ? '...' : ''}</div>` : ''}
+                    <button class="load-history-btn" onclick="loadPreviousToCurrent(${index})">📋 Load to Current Consultation</button>
+                </div>
+            `;
+        });
+        historyContainer.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Load previous consultation data into current form
+    function loadPreviousToCurrent(index) {
+        const consult = previousConsultations[index];
+        if (!consult) return;
+        
+        if (confirm('Load previous consultation data into current form? This will overwrite any unsaved changes.')) {
+            // Load symptoms
+            if (consult.symptoms) {
+                symptomsState = consult.symptoms.map(s => ({
+                    name: s.name,
+                    present: s.present || false,
+                    laterality: s.laterality || ''
+                }));
+            }
+            
+            // Load assessments
+            if (consult.assessments) {
+                assessmentsState = [...consult.assessments];
+            }
+            
+            // Load consultation type and notes
+            if (consult.consultation) {
+                const typeSelect = document.getElementById('consultType');
+                if (typeSelect && consult.consultation.type) {
+                    if ([...typeSelect.options].some(opt => opt.value === consult.consultation.type)) {
+                        typeSelect.value = consult.consultation.type;
+                    }
+                }
+                const notesTextarea = document.getElementById('consultNotes');
+                if (notesTextarea && consult.consultation.notes) {
+                    notesTextarea.value = consult.consultation.notes;
+                }
+            }
+            
+            // Re-render forms
+            renderSymptoms();
+            renderAssessment();
+            markUnsaved();
+            
+            alert('Previous consultation data loaded. Review and update as needed.');
+        }
+    }
+
+    function toggleHistory() {
+        const historyList = document.getElementById('historyList');
+        const toggleBtn = document.querySelector('.toggle-history');
+        if (historyList.style.display === 'none') {
+            historyList.style.display = 'block';
+            toggleBtn.textContent = 'Hide History';
+        } else {
+            historyList.style.display = 'none';
+            toggleBtn.textContent = 'Show History';
+        }
+    }
+
+    // Symptoms and Assessment Functions
+    function getSymptomData(n) { return symptomsState.find(s=>s.name===n) || { present: false, laterality: '' }; }
+    function updateSymptom(name, field, val) {
+        let existing = symptomsState.find(s=>s.name===name);
+        if(existing) { existing[field]=val; if(field==='present' && !val) existing.laterality=''; }
+        else if(field==='present' && val) symptomsState.push({name, present:true, laterality:''});
+        renderSymptoms(); markUnsaved();
+    }
+    function getAssessmentData(n) { return assessmentsState.find(a=>a.name===n) || { rightEye:'', leftEye:'' }; }
+    function updateAssessment(name, eye, val) {
+        let existing = assessmentsState.find(a=>a.name===name);
+        if(existing) existing[eye]=val;
+        else { let newItem={name, rightEye:'', leftEye:''}; newItem[eye]=val; assessmentsState.push(newItem); }
+        renderAssessment(); markUnsaved();
+    }
+    
+    function renderSymptoms() {
+        let html = `<div class="symptoms-table"><div class="table-header"><div>Symptom</div><div>Present</div><div>Affected eye</div></div>`;
+        symptomsList.forEach(sym=>{
+            const d=getSymptomData(sym);
+            html+=`<div class="table-row"><div>${sym}</div><div><input type="checkbox" class="sym-cb" data-sym="${sym}" ${d.present?'checked':''}> Yes</div><div class="laterality-group">
+                <label class="radio-label"><input type="radio" name="lat-${sym}" value="RE" ${d.laterality==='RE'?'checked':''} ${!d.present?'disabled':''}> RE</label>
+                <label class="radio-label"><input type="radio" name="lat-${sym}" value="LE" ${d.laterality==='LE'?'checked':''} ${!d.present?'disabled':''}> LE</label>
+                <label class="radio-label"><input type="radio" name="lat-${sym}" value="BE" ${d.laterality==='BE'?'checked':''} ${!d.present?'disabled':''}> BE</label>
+            </div></div>`;
+        });
+        html+=`</div>`;
+        document.getElementById('symptomsContainer').innerHTML=html;
+        document.querySelectorAll('.sym-cb').forEach(cb=>cb.addEventListener('change',e=>updateSymptom(cb.dataset.sym,'present',cb.checked)));
+        symptomsList.forEach(sym=>{document.querySelectorAll(`input[name="lat-${sym}"]`).forEach(r=>r.addEventListener('change',e=>{if(r.checked) updateSymptom(sym,'laterality',r.value);}));});
+    }
+    
+    function renderAssessment() {
+        let html=`<div class="assessment-table"><div class="table-header"><div>Assessment</div><div>Right Eye</div><div>Left Eye</div></div>`;
+        assessmentItems.forEach(item=>{
+            const d=getAssessmentData(item.name);
+            html+=`<div class="table-row"><div><strong>${item.name}</strong></div>
+            <div><select class="assess-re" data-name="${item.name}"><option value="">Select</option>${item.values.map(v=>`<option ${d.rightEye===v?'selected':''}>${v}</option>`).join('')}</select></div>
+            <div><select class="assess-le" data-name="${item.name}"><option value="">Select</option>${item.values.map(v=>`<option ${d.leftEye===v?'selected':''}>${v}</option>`).join('')}</select></div></div>`;
+        });
+        html+=`</div>`;
+        document.getElementById('assessmentContainer').innerHTML=html;
+        document.querySelectorAll('.assess-re').forEach(s=>s.addEventListener('change',e=>updateAssessment(s.dataset.name,'rightEye',s.value)));
+        document.querySelectorAll('.assess-le').forEach(s=>s.addEventListener('change',e=>updateAssessment(s.dataset.name,'leftEye',s.value)));
+    }
+
+    function clearValidationErrors() {
+        document.querySelectorAll('.invalid-input').forEach(el => el.classList.remove('invalid-input'));
+    }
+
+    function validateConsultationForm() {
+        clearValidationErrors();
+        const errors = [];
+        const typeField = document.getElementById('consultType');
+        const notesField = document.getElementById('consultNotes');
+        
+        if (!typeField?.value) {
+            errors.push('Consultation type is required.');
+            typeField?.classList.add('invalid-input');
+        }
+        
+        symptomsState.forEach(symptom => {
+            if (symptom.present && !symptom.laterality) {
+                errors.push(`Select laterality for symptom: ${symptom.name}`);
+                document.querySelectorAll(`input[name="lat-${symptom.name}"]`).forEach(el => el.classList.add('invalid-input'));
+            }
+        });
+        
+        assessmentItems.forEach(item => {
+            const assessment = getAssessmentData(item.name);
+            const rightSelect = document.querySelector(`.assess-re[data-name="${item.name}"]`);
+            const leftSelect = document.querySelector(`.assess-le[data-name="${item.name}"]`);
+            if (!assessment.rightEye) {
+                errors.push(`Select right eye value for ${item.name}`);
+                rightSelect?.classList.add('invalid-input');
+            }
+            if (!assessment.leftEye) {
+                errors.push(`Select left eye value for ${item.name}`);
+                leftSelect?.classList.add('invalid-input');
+            }
+        });
+        
+        if (errors.length > 0) {
+            alert('Please complete all required consultation fields:\n\n' + errors.join('\n'));
+            return false;
+        }
+        return true;
+    }
+
+    // Save current consultation to history
+    function saveConsultation() {
+        const patientId = getCurrentPatientId();
+        if (!patientId) {
+            alert('No patient selected. Please go back to patient details.');
+            return;
+        }
+        
+        if (!validateConsultationForm()) {
+            return;
+        }
+        
+        // Get diagnosis from localStorage (set in final-diagnosis page)
+        let diagnosisData = { primary: 'Not specified', code: '', notes: '' };
+        const savedDiagnosis = localStorage.getItem('currentDiagnosis');
+        if (savedDiagnosis) {
+            try {
+                diagnosisData = JSON.parse(savedDiagnosis);
+            } catch(e) {}
+        }
+        
+        const consultationData = {
+            id: Date.now(),
+            patientId: patientId,
+            savedAt: new Date().toLocaleString(),
+            consultation: {
+                type: document.getElementById('consultType')?.value || 'Initial Consultation',
+                notes: document.getElementById('consultNotes')?.value || '',
+                date: new Date().toLocaleString()
+            },
+            symptoms: symptomsState,
+            assessments: assessmentsState,
+            diagnosis: diagnosisData
+        };
+        
+        // Load existing consultations for this patient
+        const storageKey = `consultations_${patientId}`;
+        let existingConsultations = [];
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+            try {
+                existingConsultations = JSON.parse(saved);
+            } catch(e) {}
+        }
+        
+        // Add new consultation
+        existingConsultations.unshift(consultationData);
+        
+        // Keep only last 20 consultations
+        if (existingConsultations.length > 20) {
+            existingConsultations = existingConsultations.slice(0, 20);
+        }
+        
+        localStorage.setItem(storageKey, JSON.stringify(existingConsultations));
+        
+        // Also save as complete consultation for compatibility
+        localStorage.setItem('completeConsultation', JSON.stringify(consultationData));
+        
+        document.getElementById('statusBadge').innerHTML = '✓ Saved';
+        alert('Consultation saved successfully!');
+        
+        // Reload history to show new entry
+        loadPreviousConsultations();
+        
+        setTimeout(() => {
+            document.getElementById('statusBadge').innerHTML = '⚠️ Not Saved';
+        }, 2000);
+    }
+
+    // Initialize page
+    function init() {
+        renderSymptoms();
+        renderAssessment();
+        loadPreviousConsultations();
+        
+        document.getElementById('consultType')?.addEventListener('change', markUnsaved);
+        document.getElementById('consultNotes')?.addEventListener('input', markUnsaved);
+    }
+    
+    init();
+</script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discharge | Primary Eye Care</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: #f0f4f8; color: #1a2c3e; }
+        .app-container { max-width: 1400px; margin: 0 auto; background: white; min-height: 100vh; display: flex; flex-direction: column; }
+        .top-bar { background: white; border-bottom: 1px solid #e2e8f0; padding: 0.75rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .logo-area h2 { font-size: 1.2rem; font-weight: 600; color: #0f3b2c; }
+        .logo-area p { font-size: 0.75rem; color: #4a6a7e; }
+        .status-area { display: flex; align-items: center; gap: 1.5rem; }
+        .not-saved-badge { background: #fff3e0; padding: 0.4rem 1rem; border-radius: 40px; font-size: 0.75rem; font-weight: 600; color: #c47d2e; }
+        .action-buttons { display: flex; gap: 0.75rem; }
+        .cancel-btn, .save-btn { border: none; padding: 0.45rem 1.2rem; border-radius: 40px; font-weight: 600; font-size: 0.8rem; cursor: pointer; }
+        .cancel-btn { background: #f1f5f9; color: #4a5b6e; }
+        .save-btn { background: #2b6e4f; color: white; }
+        .nav-tabs { display: flex; flex-wrap: wrap; background: white; border-bottom: 1px solid #e2edf2; padding: 0 1.5rem; gap: 0.25rem; }
+        .tab-btn { background: transparent; border: none; padding: 1rem 1.2rem; font-size: 0.9rem; font-weight: 500; color: #5b7c8e; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: #2b6e4f; border-bottom-color: #2b6e4f; font-weight: 600; }
+        .tab-content { padding: 1.8rem 2rem; flex: 1; }
+        .subsection { background: white; border-radius: 20px; margin-bottom: 2rem; border: 1px solid #e2edf2; max-width: 800px; }
+        .subsection h3 { font-size: 1.3rem; font-weight: 600; padding: 1.2rem 1.5rem 0.6rem 1.5rem; color: #0f4c5f; }
+        .form-field { padding: 0.8rem 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .form-field label { font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: #2c5a6e; }
+        select, input, textarea { border: 1.5px solid #dce7ef; border-radius: 16px; padding: 0.7rem 1rem; font-family: inherit; font-size: 0.9rem; }
+        .required { color: #c73e3e; }
+        @media (max-width: 780px) { .top-bar { flex-direction: column; } .nav-tabs { overflow-x: auto; } .tab-content { padding: 1rem; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="top-bar">
+        <div class="logo-area"><h2>New Primary Eye Care</h2><p>Ministry Of Health</p></div>
+        <div class="status-area"><div class="not-saved-badge" id="statusBadge">⚠️ Not Saved</div><div class="action-buttons"><button class="cancel-btn" onclick="if(confirm('Discard changes?')) location.reload();">Cancel</button><button class="save-btn" onclick="saveDischarge();">Save</button></div></div>
+    </div>
+    <div class="nav-tabs">
+        <button class="tab-btn" onclick="location.href='patientDetails.html'">Patient Details</button>
+        <button class="tab-btn" onclick="location.href='consultation.html'">Consultation</button>
+        <button class="tab-btn" onclick="location.href='final-diagnosis.html'">Final Diagnosis</button>
+        <button class="tab-btn" onclick="location.href='treatment.html'">Treatment</button>
+        <button class="tab-btn" onclick="location.href='consumables.html'">Consumables</button>
+        <button class="tab-btn active" onclick="location.href='discharge.html'">Discharge</button>
+        <button class="tab-btn" onclick="location.href='overview.html'">Over View</button>
+    </div>
+    <div class="tab-content">
+        <div class="subsection"><h3>Discharge Summary</h3>
+            <div class="form-field"><label>Patient status <span class="required">*</span></label><select id="dischargeStatus"><option selected disabled>Select status</option><option>Referred</option><option>Admitted</option><option>Left Against Medical Advice</option><option>Expired</option></select></div>
+            <div class="form-field"><label>Discharge date <span class="required">*</span></label><input type="date" id="dischargeDate"></div>
+            <div class="form-field"><label>Discharging service <span class="required">*</span></label><select id="dischargeService"><option selected disabled>Select service</option><option>Emergency Department</option><option>Inpatient Ward</option><option>Referred to External Facility</option></select></div>
+            <div class="form-field"><label>Clinical summary & instructions</label><textarea id="clinicalSummary" rows="4" placeholder="Follow-up plan, medications summary, recommendations..."></textarea></div>
+        </div>
+    </div>
+</div>
+<script>
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(i => i.addEventListener('input', () => { document.getElementById('statusBadge').innerHTML = '⚠️ Not Saved'; }));
+    const dateField = document.getElementById('dischargeDate');
+    if(dateField && !dateField.value) dateField.value = new Date().toISOString().split('T')[0];
+
+    function saveDischarge() {
+        const status = document.getElementById('dischargeStatus');
+        const date = document.getElementById('dischargeDate');
+        const service = document.getElementById('dischargeService');
+        const errors = [];
+
+        status?.classList.remove('invalid-input');
+        date?.classList.remove('invalid-input');
+        service?.classList.remove('invalid-input');
+
+        if (!status?.value || status.value === 'Select status') {
+            errors.push('Patient status is required.');
+            status?.classList.add('invalid-input');
+        }
+        if (!date?.value) {
+            errors.push('Discharge date is required.');
+            date?.classList.add('invalid-input');
+        }
+        if (!service?.value || service.value === 'Select service') {
+            errors.push('Discharging service is required.');
+            service?.classList.add('invalid-input');
+        }
+
+        if (errors.length > 0) {
+            alert('Please complete all required discharge fields:\n\n' + errors.join('\n'));
+            return;
+        }
+
+        document.getElementById('statusBadge').innerHTML = '✓ Saved';
+        alert('Discharge summary saved successfully.');
+        setTimeout(() => document.getElementById('statusBadge').innerHTML = '⚠️ Not Saved', 2000);
+    }
+
+    document.querySelectorAll('input, select').forEach(i => {
+        i.addEventListener('input', () => { document.getElementById('statusBadge').innerHTML = '⚠️ Not Saved'; });
+        i.addEventListener('change', () => { document.getElementById('statusBadge').innerHTML = '⚠️ Not Saved'; });
+    });
+</script>
+</body>
+</html>

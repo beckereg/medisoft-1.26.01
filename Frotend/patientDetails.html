@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Details | Primary Eye Care</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: #f0f4f8; color: #1a2c3e; }
+        .app-container { max-width: 1400px; margin: 0 auto; background: white; min-height: 100vh; display: flex; flex-direction: column; }
+        .top-bar { background: white; border-bottom: 1px solid #e2e8f0; padding: 0.75rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .logo-area h2 { font-size: 1.2rem; font-weight: 600; color: #0f3b2c; }
+        .logo-area p { font-size: 0.75rem; color: #4a6a7e; }
+        .status-area { display: flex; align-items: center; gap: 1.5rem; }
+        .not-saved-badge { background: #fff3e0; padding: 0.4rem 1rem; border-radius: 40px; font-size: 0.75rem; font-weight: 600; color: #c47d2e; }
+        .action-buttons { display: flex; gap: 0.75rem; }
+        .cancel-btn, .save-btn, .refresh-btn { border: none; padding: 0.45rem 1.2rem; border-radius: 40px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
+        .cancel-btn { background: #f1f5f9; color: #4a5b6e; }
+        .cancel-btn:hover { background: #e2e8f0; }
+        .save-btn { background: #2b6e4f; color: white; }
+        .save-btn:hover { background: #1e5940; }
+        .refresh-btn { background: #e2e8f0; color: #2c5a6e; }
+        .refresh-btn:hover { background: #cbd5e1; }
+        .nav-tabs { display: flex; flex-wrap: wrap; background: white; border-bottom: 1px solid #e2edf2; padding: 0 1.5rem; gap: 0.25rem; }
+        .tab-btn { background: transparent; border: none; padding: 1rem 1.2rem; font-size: 0.9rem; font-weight: 500; color: #5b7c8e; cursor: pointer; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: #2b6e4f; border-bottom-color: #2b6e4f; font-weight: 600; }
+        .tab-content { padding: 1.8rem 2rem; flex: 1; }
+        .subsection { background: white; border-radius: 20px; margin-bottom: 2rem; border: 1px solid #e2edf2; }
+        .subsection h3 { font-size: 1.3rem; font-weight: 600; padding: 1.2rem 1.5rem 0.6rem 1.5rem; color: #0f4c5f; }
+        .form-field { padding: 0.8rem 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .form-field label { font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: #2c5a6e; }
+        .required { color: #c73e3e; }
+        input, select { border: 1.5px solid #dce7ef; border-radius: 16px; padding: 0.7rem 1rem; font-family: inherit; font-size: 0.9rem; background: white; }
+        input:focus, select:focus { outline: none; border-color: #2b8c6e; }
+        input[readonly] { background: #f5f7fa; border-color: #e2edf2; color: #5e7b8c; cursor: not-allowed; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+        @media (max-width: 780px) { .top-bar { flex-direction: column; align-items: flex-start; } .nav-tabs { overflow-x: auto; } .tab-content { padding: 1rem; } }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="top-bar">
+        <div class="logo-area"><h2>New Primary Eye Care</h2><p>Ministry Of Health</p></div>
+        <div class="status-area">
+            <div class="not-saved-badge" id="statusBadge">⚠️ Not Saved</div>
+            <div class="action-buttons">
+                <button class="refresh-btn" id="refreshSessionBtn">🔄 Refresh</button>
+                <button class="cancel-btn" onclick="if(confirm('Discard changes?')) location.reload();">Cancel</button>
+                <button class="save-btn" onclick="savePatientData();">Save</button>
+            </div>
+        </div>
+    </div>
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="location.href='patientDetails.html'">Patient Details</button>
+        <button class="tab-btn" onclick="location.href='consultation.html'">Consultation</button>
+        <button class="tab-btn" onclick="location.href='final-diagnosis.html'">Final Diagnosis</button>
+        <button class="tab-btn" onclick="location.href='treatment.html'">Treatment</button>
+        <button class="tab-btn" onclick="location.href='consumables.html'">Consumables</button>
+        <button class="tab-btn" onclick="location.href='discharge.html'">Discharge</button>
+    </div>
+    <div class="tab-content">
+        <div class="subsection"><h3>Patient Information</h3>
+            <div class="form-grid">
+                <div class="form-field"><label>Patient ID <span class="required">*</span></label><input type="text" id="patId" readonly value=""></div>
+                <div class="form-field"><label>Full Name</label><input type="text" id="patName" value=""></div>
+                <div class="form-field"><label>NIDA</label><input type="text" id="nida" value=""></div>
+                <div class="form-field"><label>Insurance</label><input type="text" id="insurance" value=""></div>
+                <div class="form-field"><label>Catchment Area</label><input type="text" id="catchment" value=""></div>
+                <div class="form-field"><label>District</label><input type="text" id="district" value=""></div>
+                <div class="form-field"><label>Village</label><input type="text" id="village" value=""></div>
+                <div class="form-field"><label>Phone</label><input type="text" id="phone" value=""></div>
+                <div class="form-field"><label>Age</label><input type="text" id="age" value=""></div>
+                <div class="form-field"><label>Gender</label><select id="gender"><option>Female</option><option>Male</option></select></div>
+                <div class="form-field"><label>Province</label><input type="text" id="province" value=""></div>
+                <div class="form-field"><label>Sector</label><input type="text" id="sector" value=""></div>
+                <div class="form-field"><label>Cell</label><input type="text" id="cell" value=""></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to end session and redirect to index
+    function endSession() {
+        localStorage.removeItem('currentPatientId');
+        localStorage.removeItem('currentPatient');
+        localStorage.removeItem('completeConsultation');
+        localStorage.removeItem('consultationDraft');
+        sessionStorage.removeItem('currentPatient');
+        sessionStorage.removeItem('consultationData');
+        window.location.href = 'index.html';
+    }
+
+    // Save patient data function
+    function savePatientData() {
+        const patient = {
+            id: document.getElementById('patId').value,
+            name: document.getElementById('patName').value,
+            nida: document.getElementById('nida').value,
+            insuranceName: document.getElementById('insurance').value,
+            catchmentArea: document.getElementById('catchment').value,
+            district: document.getElementById('district').value,
+            village: document.getElementById('village').value,
+            phone: document.getElementById('phone').value,
+            age: document.getElementById('age').value,
+            gender: document.getElementById('gender').value,
+            province: document.getElementById('province').value,
+            sector: document.getElementById('sector').value,
+            cell: document.getElementById('cell').value
+        };
+        
+        localStorage.setItem('currentPatient', JSON.stringify(patient));
+        localStorage.setItem('currentPatientId', patient.id);
+        document.querySelector('.not-saved-badge').innerHTML = '✓ Saved';
+        alert('Patient details saved successfully!');
+        
+        setTimeout(() => {
+            document.querySelector('.not-saved-badge').innerHTML = '⚠️ Not Saved';
+        }, 2000);
+    }
+
+    // Load patient details from localStorage
+    function loadPatientDetails() {
+        const savedPatientId = localStorage.getItem('currentPatientId');
+        const savedPatient = localStorage.getItem('currentPatient');
+        
+        if (!savedPatientId || !savedPatient) {
+            window.location.href = 'index.html';
+            return;
+        }
+
+        let patient;
+        try {
+            patient = JSON.parse(savedPatient);
+        } catch (e) {
+            console.error('Invalid saved patient data:', e);
+            window.location.href = 'index.html';
+            return;
+        }
+
+        document.getElementById('patId').value = patient.id || savedPatientId;
+        document.getElementById('patName').value = patient.name || '';
+        document.getElementById('nida').value = patient.nida || '';
+        document.getElementById('insurance').value = patient.insuranceName || patient.insurance || '';
+        document.getElementById('catchment').value = patient.catchmentArea || '';
+        document.getElementById('district').value = patient.district || '';
+        document.getElementById('village').value = patient.village || '';
+        document.getElementById('phone').value = patient.phone || '';
+        document.getElementById('age').value = patient.age || '';
+
+        const genderSelect = document.getElementById('gender');
+        if (genderSelect) {
+            const genderValue = patient.gender || '';
+            if ([...genderSelect.options].some(option => option.value === genderValue)) {
+                genderSelect.value = genderValue;
+            }
+        }
+
+        document.getElementById('province').value = patient.province || '';
+        document.getElementById('sector').value = patient.sector || '';
+        document.getElementById('cell').value = patient.cell || '';
+
+        const inputs = document.querySelectorAll('input, select');
+        inputs.forEach(i => i.addEventListener('input', () => {
+            document.querySelector('.not-saved-badge').innerHTML = '⚠️ Not Saved';
+        }));
+    }
+
+    // Attach refresh button event
+    document.getElementById('refreshSessionBtn')?.addEventListener('click', function() {
+        if (confirm('End current session? All unsaved data will be lost and you will return to the search page.')) {
+            endSession();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadPatientDetails);
+</script>
+</body>
+</html>
